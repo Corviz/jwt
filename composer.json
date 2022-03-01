@@ -1,0 +1,15 @@
+{
+  "name": "corviz/jwt",
+  "description": "Lib for generating Json Web Tokens using PHP",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Corviz\\Jwt\\": "./src"
+    }
+  }
+}
