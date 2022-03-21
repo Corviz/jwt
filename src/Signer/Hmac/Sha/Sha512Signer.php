@@ -1,14 +1,11 @@
 <?php
 
-namespace Corviz\Jwt\Signator\Hmac\Sha;
+namespace Corviz\Jwt\Signer\Hmac\Sha;
 
-use Corviz\Jwt\Signator\Hmac\HmacSignator;
+use Corviz\Jwt\Signer\Hmac\HmacSigner;
 
-class Sha512Signator extends HmacSignator
+class Sha512Signer extends HmacSigner
 {
-    /**
-     * @var string
-     */
     protected string $hmacAlg = 'sha512';
 
     /**
