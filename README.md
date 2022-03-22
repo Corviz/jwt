@@ -119,6 +119,6 @@ $token = Token::fromString('xxxx.yyyyy.zzzzz')
 $isValid = $token->validate($mySecret);
 
 if ($isValid) {
-    $myClaim = $payload = $token->getPayload('my-claim');
+    $myClaim = $token->getPayload('my-claim');
 }
 ```
