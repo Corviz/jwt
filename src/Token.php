@@ -140,16 +140,6 @@ class Token
     }
 
     /**
-     * @param string $index
-     * @return $this
-     */
-    public function remove(string $index)
-    {
-        unset($this->payload[$index]);
-        return $this;
-    }
-
-    /**
      * @param Validator $validator
      * @return $this
      */
@@ -170,9 +160,35 @@ class Token
     }
 
     /**
+     * @param string|null $index
+     * @return mixed
+     */
+    public function getHeaders(string $index = null) : mixed
+    {
+        if (!$index) {
+            return $this->headers;
+        }
+
+        return isset($this->headers[$index]) ? $this->headers[$index] : null;
+    }
+
+    /**
+     * @param string|null $index
+     * @return mixed
+     */
+    public function getPayload(string $index = null) : mixed
+    {
+        if (!$index) {
+            return $this->payload;
+        }
+
+        return isset($this->payload[$index]) ? $this->payload[$index] : null;
+    }
+
+    /**
      * @return string|null
      */
-    public function getLastValidationIssue(): ?string
+    public function getLastValidationIssue() : ?string
     {
         return $this->lastValidationIssue;
     }
@@ -181,7 +197,17 @@ class Token
      * @param string $index
      * @return $this
      */
-    public function removeHeader(string $index)
+    public function remove(string $index) : Token
+    {
+        unset($this->payload[$index]);
+        return $this;
+    }
+
+    /**
+     * @param string $index
+     * @return $this
+     */
+    public function removeHeader(string $index) : Token
     {
         unset($this->headers[$index]);
         return $this;
@@ -191,7 +217,7 @@ class Token
      * @param array $headers
      * @return $this
      */
-    public function setHeaders(array $headers): Token
+    public function setHeaders(array $headers) : Token
     {
         $this->headers = $headers;
         return $this;
@@ -201,7 +227,7 @@ class Token
      * @param array $payload
      * @return $this
      */
-    public function setPayload(array $payload): Token
+    public function setPayload(array $payload) : Token
     {
         $this->payload = $payload;
         return $this;
@@ -211,7 +237,7 @@ class Token
      * @param string $signature
      * @return $this
      */
-    public function setSignature(string $signature): Token
+    public function setSignature(string $signature) : Token
     {
         $this->signature = $signature;
         return $this;
