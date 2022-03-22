@@ -20,10 +20,6 @@ composer require corviz/jwt
         <td>1.0</td>
     </tr>
     <tr>
-        <td>HS256</td>
-        <td>1.0</td>
-    </tr>
-    <tr>
         <td>HS384</td>
         <td>1.0</td>
     </tr>
