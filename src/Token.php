@@ -4,6 +4,9 @@ namespace Corviz\Jwt;
 
 use Corviz\Jwt\Signer\Hmac\Sha\Sha256Signer;
 use Corviz\Jwt\Signer\Signer;
+use Corviz\Jwt\Validator\ExpValidator;
+use Corviz\Jwt\Validator\NbfValidator;
+use Corviz\Jwt\Validator\Validator;
 use Exception;
 
 class Token
@@ -19,9 +22,19 @@ class Token
     private array $headers = [];
 
     /**
+     * @var string|null
+     */
+    private ?string $lastValidationIssue = null;
+
+    /**
      * @var array
      */
     private array $payload = [];
+
+    /**
+     * @var string
+     */
+    private string $signature;
 
     /**
      * @var Signer
@@ -29,9 +42,14 @@ class Token
     private Signer $signer;
 
     /**
-     * @var string
+     * @var array
      */
-    private string $signature;
+    private array $validators = [];
+
+    /**
+     * @var array
+     */
+    private array $headerValidators = [];
 
     /**
      * @return static
@@ -132,6 +150,34 @@ class Token
     }
 
     /**
+     * @param Validator $validator
+     * @return $this
+     */
+    public function assignValidator(Validator $validator) : Token
+    {
+        $this->validators[$validator->validates()] = $validator;
+        return $this;
+    }
+
+    /**
+     * @param Validator $validator
+     * @return $this
+     */
+    public function assignHeaderValidator(Validator $validator) : Token
+    {
+        $this->headerValidators[$validator->validates()] = $validator;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getLastValidationIssue(): ?string
+    {
+        return $this->lastValidationIssue;
+    }
+
+    /**
      * @param string $index
      * @return $this
      */
@@ -205,13 +251,40 @@ class Token
      */
     public function validate(mixed $secret) : bool
     {
+        //Validate headers
+        foreach ($this->headerValidators as $i => $validator) {
+            /* @var $validator Validator */
+
+            if (isset($this->headers[$i]) && !$validator->validate($this->headers[$i])) {
+                $this->lastValidationIssue = "Header '$i' value is invalid.";
+                return false;
+            }
+        }
+
+        //Validate payload
+        foreach ($this->validators as $i => $validator) {
+            /* @var $validator Validator */
+
+            if (isset($this->payload[$i]) && !$validator->validate($this->payload[$i])) {
+                $this->lastValidationIssue = "Payload field '$i' value is invalid.";
+                return false;
+            }
+        }
+
+        //Validate signature
         $signer = clone $this->signer;
         $signer->setSecret($secret);
 
-        return $this->signature === $signer->sign(
+        $valid = $this->signature === $signer->sign(
                 self::encodeSection(json_encode($this->headers)),
                 self::encodeSection(json_encode($this->payload))
             );
+
+        if (!$valid) {
+            $this->lastValidationIssue = "Token signature is invalid.";
+        }
+
+        return $valid;
     }
 
     /**
@@ -252,7 +325,9 @@ class Token
     public function __construct()
     {
         $this->withHeader('typ', 'JWT')
-            ->withSigner(self::getDefaultSigner());
+            ->withSigner(self::getDefaultSigner())
+            ->assignValidator(new NbfValidator())
+            ->assignValidator(new ExpValidator());
     }
 
     /**
