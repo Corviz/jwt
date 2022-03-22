@@ -88,7 +88,7 @@ class Token
      */
     public static function fromQueryString($param = 'token') : Token
     {
-        $token = $_GET[$param];
+        $token = isset($_GET[$param]) ? $_GET[$param] : null;
 
         return static::fromString($token);
     }
