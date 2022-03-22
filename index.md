@@ -2,6 +2,10 @@
 
 ![JWT Logo](https://jwt.io/img/logo-asset.svg)
 
+## API reference
+
+[See API Reference](/api/index.html)
+
 ## How to install
 
 ```
