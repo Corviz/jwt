@@ -1,37 +1,124 @@
-## Welcome to GitHub Pages
+# JWT
 
-You can use the [editor on GitHub](https://github.com/Corviz/jwt/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+![JWT Logo](https://jwt.io/img/logo-asset.svg)
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## How to install
 
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```
+composer require corviz/jwt
 ```
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+## Provided signers
 
-### Jekyll Themes
+<table>
+    <tr>
+        <th>Algorithm</th>
+        <th>Version</th>
+    </tr>
+    <tr>
+        <td>HS256</td>
+        <td>1.0</td>
+    </tr>
+    <tr>
+        <td>HS384</td>
+        <td>1.0</td>
+    </tr>
+    <tr>
+        <td>HS512</td>
+        <td>1.0</td>
+    </tr>
+</table>
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Corviz/jwt/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+## Provided claim validators
+<table>
+    <tr>
+        <th>Claim</th>
+        <th>Version</th>
+    </tr>
+    <tr>
+        <td>exp</td>
+        <td>1.0</td>
+    </tr>
+    <tr>
+        <td>nbf</td>
+        <td>1.0</td>
+    </tr>
+</table>
 
-### Support or Contact
+## Basic Usage
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+### Generating token
+```php
+<?php
+
+use Corviz\Jwt\Token;
+use Corviz\Jwt\SignerFactory;
+
+$token = Token::create()
+            ->with('exp', strtotime('+ 1 hour')) //Expires in one hour
+            ->withSigner(SignerFactory::build('HS256')) //HS256 signer is provided by default. This could be omitted
+            ->sign($mySecret)
+            ->toString();
+```
+
+### Validating and reading values from a token
+```php
+<?php
+
+use Corviz\Jwt\Token;
+
+$token = Token::fromString('xxxx.yyyyy.zzzzz');
+
+$isValid = $token->validate($mySecret);
+
+if ($isValid) {
+    $payload = $token->getPayload();
+    $headers = $token->getHeaders();
+}
+```
+
+### Validating your private claims
+
+First you have to create your validator
+
+```php
+use \Corviz\Jwt\Validator\Validator;
+
+class MyClaimValidator extends Validator {
+    /**
+     * @return string
+     */
+    public function validates() : string
+    {
+        return 'my-claim'; //this will validate value inside 'my-claim', when set
+    }
+    
+    /**
+     * @param mixed $value
+     * @return bool
+     */
+    public function validate(mixed $value) : bool
+    {
+        // this claim must contain value 'a', 'b' or 'c'
+        $valid = in_array($value, ['a', 'b', 'c']);
+        
+        return $valid;
+    }
+}
+```
+
+Then all you have to do is assign your validator before running *validate()* method
+```php
+<?php
+
+use Corviz\Jwt\Token;
+
+$token = Token::fromString('xxxx.yyyyy.zzzzz')
+            ->assignValidator(new MyClaimValidator());
+
+$isValid = $token->validate($mySecret);
+
+if ($isValid) {
+    $myClaim = $token->getPayload('my-claim');
+}
+```
