@@ -1,5 +1,7 @@
 # JWT
 
+![JWT Logo](https://jwt.io/img/logo-asset.svg)
+
 ## How to install
 
 ```
